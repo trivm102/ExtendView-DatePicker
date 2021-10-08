@@ -1,63 +1,47 @@
 package com.trivm.extendview.datepicker.view
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.trivm.extendview.datepicker.R
 import com.trivm.extendview.datepicker.databinding.FragmentDatePickerBinding
 import com.trivm.extendview.datepicker.extensions.hideKeyboard
-import com.trivm.extendview.datepicker.extensions.setOnSingleClickListener
 import com.trivm.extendview.datepicker.extensions.toTimeStamp
+import com.trivm.extendview.datepicker.listener.DateTimePickerButtonsListener
 import com.trivm.extendview.datepicker.listener.DateTimePickerDialogListener
+import com.trivm.extendview.datepicker.state.DateTimePickerDialogThemeUI
 import java.util.*
 
-class DateTimePickerDialog : AppCompatDialogFragment() {
-
-    private val layoutID: Int = R.layout.fragment_date_picker
-
-    private lateinit var binding : FragmentDatePickerBinding
+open class DateTimePickerDialog(private val stateUI: DateTimePickerDialogThemeUI? = null) : BaseDialogFragment<FragmentDatePickerBinding>() {
 
     private var selectedListener: DateTimePickerDialogListener? = null
-
     var timeStampSelected: Long? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setLocaleDefaultVN()
-    }
-
-    override fun onCreateView(
+    override fun inflateViewBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        activity?.hideKeyboard()
-        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        binding = DataBindingUtil.inflate(inflater, layoutID, container, false)
-        binding.lifecycleOwner = this
-        return binding.root
+        container: ViewGroup?
+    ): FragmentDatePickerBinding {
+        return DataBindingUtil.inflate(inflater, R.layout.fragment_date_picker, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        this.activity?.hideKeyboard()
         setupView()
-        binding.doneButton.setOnSingleClickListener {
-            datePickerSelected()
-            this.dismiss()
-        }
+        binding.listener = object : DateTimePickerButtonsListener {
+            override fun doneButtonPressed() {
+                this@DateTimePickerDialog.dismiss()
+                datePickerSelected()
+            }
 
-        binding.cancelButton.setOnSingleClickListener {
-            this.dismiss()
+            override fun cancelButtonPressed() {
+                this@DateTimePickerDialog.dismiss()
+            }
         }
-    }
-
-    private fun setLocaleDefaultVN() {
-        Locale.setDefault(Locale("vi","VN"))
     }
 
     private fun setupView() {
@@ -72,6 +56,8 @@ class DateTimePickerDialog : AppCompatDialogFragment() {
         }
         binding.datePicker.minDate = System.currentTimeMillis() - 3155695200000
         binding.datePicker.maxDate = System.currentTimeMillis()
+        binding.separationView.setBackgroundColor(ContextCompat.getColor(this.requireContext(), this.stateUI?.separationLineColor ?: R.color.blue))
+        setBackgroundButtons(this.stateUI?.backgroundButtons)
     }
 
     private fun datePickerSelected() {
@@ -83,5 +69,15 @@ class DateTimePickerDialog : AppCompatDialogFragment() {
 
     fun setDatePickerSelectListener(listener: DateTimePickerDialogListener?) {
         this.selectedListener = listener
+    }
+
+    private fun setBackgroundButtons(drawableRes: Drawable?) {
+        drawableRes?.let {
+            binding.cancelButton.background = drawableRes
+            binding.doneButton.background = drawableRes
+        } ?: kotlin.run {
+            binding.cancelButton.background = (ContextCompat.getDrawable(this.requireContext(), R.drawable.button_background_selector))
+            binding.doneButton.background = (ContextCompat.getDrawable(this.requireContext(), R.drawable.button_background_selector))
+        }
     }
 }

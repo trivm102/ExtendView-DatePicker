@@ -2,6 +2,7 @@ package com.trivm.extendview.datepicker.extensions
 
 import android.os.SystemClock
 import android.view.View
+import androidx.databinding.BindingAdapter
 
 class SingleClick(
     private var defaultInterval: Int = 800,
@@ -17,9 +18,14 @@ class SingleClick(
     }
 }
 
-fun View.setOnSingleClickListener(onSingleClick: (View) -> Unit) {
+interface OnSingleClickListener {
+    fun onSingleClick(view: View)
+}
+
+@BindingAdapter("onSingleClick")
+fun View.setOnSingleClickListener(onSingleClick: OnSingleClickListener?) {
     val singleClickListener = SingleClick {
-        onSingleClick(it)
+        onSingleClick?.onSingleClick(it)
     }
     setOnClickListener(singleClickListener)
 }

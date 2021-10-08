@@ -1,4 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="cancel" tools:ignore="ExtraTranslation">Cancel</string>
+    <string name="cancel">Cancel</string>
     <string name="done">Done</string>
 </resources>
